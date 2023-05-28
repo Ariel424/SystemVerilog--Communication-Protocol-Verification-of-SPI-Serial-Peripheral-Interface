@@ -1,0 +1,58 @@
+Design Code:
+
+  module spi ( // define SPI 
+input clk, newd, rst, // newd = new data. The input can be "0" or "1" logi. 
+input [11:0] din, // 12-bit wide bus
+output reg sclk, cs, mosi // cs = what chip selected. 
+    );
+  
+  typedef enum bit [1:0] {idle = 2'b00, enable = 2'b01, send = 2'b10, comp = 2'b11 } state_type; // current state of SPI module.
+  state_type state = idle;
+  
+  int countc = 0; // declared to keep track of internal counts used for clock generation. This variable is used to keep track of the count for generating the sclk signal. 
+  It is incremented on every clock cycle (posedge clk) until it reaches a certain value. 
+ 
+  //// generation of sclk // clk is the main input clock signal to the module, 
+ while sclk is an output signal generated within the module for serial clock synchronization purposes in SPI communication.
+ always@(posedge clk) // Change of status every positive clock. 
+  begin
+    if(rst == 1'b1) begin
+      countc <= 0; // used to initialize or reset the counter to zero before it starts counting.
+      sclk <= 1'b0;
+    end
+    else begin 
+      if(countc < 50 )
+          countc <= countc + 1; // add 1 to the count until it get's to 50 counts. 
+      else
+          begin
+          countc <= 0;
+          sclk <= ~sclk; // ~ flips the value of sclk. If sclk is 1, then ~sclk will be 0, and if sclk is 0, then ~sclk will be 1. 
+          This effectively toggles the signal between its current state and its complement.
+          end
+    end
+  end
+  
+  
+  //////////////////state machine
+    reg [11:0] temp;
+    
+  always@(posedge sclk)
+  begin
+    if(rst == 1'b1) begin
+      cs <= 1'b1; 
+      mosi <= 1'b0;
+    end
+    else begin
+     case(state)
+         idle:
+             begin
+               if(newd == 1'b1) begin
+                 state <= send;
+                 temp <= din; 
+                 cs <= 1'b0;
+               end
+               else begin
+                 state <= idle;
+                 temp <= 8'h00;
+               end
+             end
