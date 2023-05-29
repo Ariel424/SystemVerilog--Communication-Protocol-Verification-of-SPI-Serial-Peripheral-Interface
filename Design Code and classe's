@@ -1,6 +1,6 @@
 Design Code:
 
-  module spi ( // define SPI 
+module spi ( // define SPI 
 input clk, newd, rst, // newd = new data. The input can be "0" or "1" logi. 
 input [11:0] din, // 12-bit wide bus
 output reg sclk, cs, mosi // cs = what chip selected. the usage of clk is to initiate the system, and the usage of sclk is 
@@ -70,8 +70,7 @@ synchronizing the data transfer between the SPI master and slave devices.
                mosi <= 1'b0;
              end
        end
-       
-                
+                  
       default : state <= idle; 
        
    endcase
@@ -79,4 +78,22 @@ synchronizing the data transfer between the SPI master and slave devices.
  end
   
 endmodule
+
 ///////////////////////////
+
+interface spi_if; // interface provides a standardized way to define the signals and their characteristics for communication between modules.
+a module represents a self-contained unit of hardware with its own internal logic and behavior, 
+while an interface defines a set of signals and properties that facilitate communication between modules or entities.
+Modules contain both the interface (input/output ports) and the internal logic,
+whereas interfaces are focused on specifying the communication protocol and characteristics of the signals used for inter-module communication.
+
+  logic clk;
+  logic newd;
+  logic rst;
+  logic [11:0] din;
+  logic sclk;
+  logic cs;
+  logic mosi;
+  
+endinterface
+
