@@ -121,18 +121,38 @@ class transaction;
   
 endclass
 
-/*
-module tb;
-  transaction tr;
+////////////////Generator Class
+class generator;
   
+  transaction tr; // define tr variable for transaction.
+  mailbox #(transaction) mbx; // mailbox is data structure used for cummunication between different process.
+  event done; // This member represents an event. Events are used to synchronize processes or tasks.
+  done is the name of the event. indicate the completion of a certain task or operation.
+  By using events, you can create synchronization points in your code, ensuring that different processes or tasks coordinate their actions appropriately.
+  Events are commonly used in hardware verification and design environments to synchronize the behavior of different modules or components.
+  int count = 0;
+  event drvnext; // event "drvnext" can be used to synchronize the execution of different processes or tasks in the code.
+  event sconext; // synchronize the execution of processes or tasks in the code.
   
-  initial begin
+  function new(mailbox #(transaction) mbx);
+    this.mbx = mbx;
     tr = new();
-    tr.display("TOP");
-    
-  end
+  endfunction
+  
+  task run();
+    repeat(count) begin
+      assert(tr.randomize) else $error("[GEN] :Randomization Failed");
+      mbx.put(tr.copy);
+      tr.display("GEN");
+      @(drvnext); // Both events, "drvnext" and "sconext", can be used as synchronization points in the code. 
+      Other processes or tasks can wait for these events to occur using the @ operator followed by the event name, such as @(drvnext) or @(sconext),
+      before continuing their execution.
+      @(sconext);
+    end
+    -> done;
+  endtask
   
   
-endmodule
- 
-*/
+endclass
+
+
