@@ -3,7 +3,8 @@ Design Code:
   module spi ( // define SPI 
 input clk, newd, rst, // newd = new data. The input can be "0" or "1" logi. 
 input [11:0] din, // 12-bit wide bus
-output reg sclk, cs, mosi // cs = what chip selected. 
+output reg sclk, cs, mosi // cs = what chip selected. the usage of clk is to initiate the system, and the usage of sclk is 
+synchronizing the data transfer between the SPI master and slave devices.
     );
   
   typedef enum bit [1:0] {idle = 2'b00, enable = 2'b01, send = 2'b10, comp = 2'b11 } state_type; // current state of SPI module.
@@ -32,27 +33,26 @@ output reg sclk, cs, mosi // cs = what chip selected.
     end
   end
   
-  
-  //////////////////state machine
-    reg [11:0] temp;
+  ////// state machine
+    reg [11:0] temp; // register with 12-bit.
     
-  always@(posedge sclk)
+  always@(posedge sclk) / always block to initiate positive edge for the clock. if posedge was negedge, then the clock was initiate in the negate edge.
   begin
-    if(rst == 1'b1) begin
-      cs <= 1'b1; 
-      mosi <= 1'b0;
+    if(rst == 1'b1) begin 
+      cs <= 1'b1; // Setting it to 1 typically means that no slave device is selected.
+      mosi <= 1'b0; // It sets the initial value of mosi to 0 during a reset condition.
     end
     else begin
      case(state)
          idle:
              begin
-               if(newd == 1'b1) begin
+               if(newd == 1'b1) begin // "high" indicating new data to be transmitted.
                  state <= send;
                  temp <= din; 
-                 cs <= 1'b0;
+                 cs <= 1'b0; //  This line sets the cs signal to 0, selecting the slave device for communication.
                end
                else begin
-                 state <= idle;
+                 state <= idle; // This line sets the state variable to idle, indicating that the SPI module remains in the idle state.
                  temp <= 8'h00;
                end
              end
