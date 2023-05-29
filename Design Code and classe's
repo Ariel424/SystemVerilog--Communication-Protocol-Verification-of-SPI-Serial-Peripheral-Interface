@@ -56,3 +56,27 @@ synchronizing the data transfer between the SPI master and slave devices.
                  temp <= 8'h00;
                end
              end
+                         
+       send : begin
+         if(count <= 11) begin
+           mosi <= temp[count]; /////sending lsb first
+           count <= count + 1;
+         end
+         else
+             begin
+               count <= 0;
+               state <= idle;
+               cs <= 1'b1;
+               mosi <= 1'b0;
+             end
+       end
+       
+                
+      default : state <= idle; 
+       
+   endcase
+  end 
+ end
+  
+endmodule
+///////////////////////////
