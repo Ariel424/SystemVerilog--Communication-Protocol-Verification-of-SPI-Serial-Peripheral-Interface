@@ -130,23 +130,26 @@ class generator;
   done is the name of the event. indicate the completion of a certain task or operation.
   By using events, you can create synchronization points in your code, ensuring that different processes or tasks coordinate their actions appropriately.
   Events are commonly used in hardware verification and design environments to synchronize the behavior of different modules or components.
+  This is an event that is triggered when the generator has completed generating transactions.
   int count = 0;
-  event drvnext; // event "drvnext" can be used to synchronize the execution of different processes or tasks in the code.
-  event sconext; // synchronize the execution of processes or tasks in the code.
+  event drvnext; // used to synchronize the generator with the driver.
+  event sconext; // used to synchronize the generator with the scoreboard.
   
   function new(mailbox #(transaction) mbx);
     this.mbx = mbx;
     tr = new();
   endfunction
   
-  task run();
-    repeat(count) begin
-      assert(tr.randomize) else $error("[GEN] :Randomization Failed");
-      mbx.put(tr.copy);
-      tr.display("GEN");
-      @(drvnext); // Both events, "drvnext" and "sconext", can be used as synchronization points in the code. 
-      Other processes or tasks can wait for these events to occur using the @ operator followed by the event name, such as @(drvnext) or @(sconext),
-      before continuing their execution.
+  task run(); // The run task is responsible for generating transactions and putting them into the mailbox.  
+    repeat(count) begin // uses a repeat loop that runs count times.
+      assert(tr.randomize) else $error("[GEN] :Randomization Failed"); // randomizes the tr transaction using the randomize method.
+      If the randomization fails, it prints an error message.
+      mbx.put(tr.copy); // The randomized transaction is then put into the mailbox using the put method. 
+      tr.display("GEN"); // displays the transaction information using the display method By passing "GEN" as an argument,
+      it indicates that this particular display statement is coming from the generator component.
+      It helps identify the source or origin of the displayed information.
+      @(drvnext); //  the task waits for the drvnext event and sconext event to synchronize with the driver and scoreboard, respectively.
+      These events are used to coordinate the activities of different components in the verification environment.
       @(sconext);
     end
     -> done;
