@@ -161,7 +161,10 @@ endclass
  
 class driver;
   
-  virtual spi_if vif; // connect the interface to DUT (device under test).
+  virtual spi_if vif; // virtual keyword is used to declare a virtual interface or class connect to DUT (device under test).
+  virtual spi_if vif declares a variable named vif of type spi_if, where spi_if is the interface type. By specifying spi_if after virtual,
+  you are explicitly indicating the type of the interface that vif will be bound to. If you were to write just virtual vif without specifying the interface type,
+  it would be a syntax error because the type of the interface is missing.
   transaction tr; // carries the data to sent to the DUT. represents only one single transaction object.
   mailbox #(transaction) mbx; // exchage transaction objects between different processes or threads. this operator help the safety passing 
   and exchanging transaction objects between different processes or threads within the "driver" class.
@@ -194,16 +197,21 @@ class driver;
       mbx.get(tr); // call the data in the transaction class.
       @(posedge vif.sclk);
       vif.newd <= 1'b1; // put a new data.
-      vif.din <= tr.din; // 
-      mbxds.put(tr.din);
+      vif.din <= tr.din; // the interface gets the data from transaction class. 
+      mbxds.put(tr.din); // I call to the data on mbxds mailbox. "put" is used to put a value into the mailbox.
+      so, basically, I "put" data from transaction class into the mailbox.  
       @(posedge vif.sclk);
       vif.newd <= 1'b0;
-      wait(vif.cs == 1'b1);
-      $display("[DRV] : DATA SENT TO DAC : %0d",tr.din);
-      ->drvnext;
+      wait(vif.cs == 1'b1); // the usage of "wait" operator is to suspends the execution of the current task until the condition on the bracket take place. 
+      $display("[DRV] : DATA SENT TO DAC : %0d",tr.din); // %0d used to display the decimal value of tr.din.
+      ->drvnext; // I want to trigger this event so I can synchronize this task with other processes or threads within the driver class.
     end
     
   endtask
+
+// Overall, the run() task repeatedly retrieves a transaction object from the mailbox, transfers the data from the transaction to the interface,
+stores the data in another mailbox, waits for a condition to be true, displays a message, 
+and triggers an event before repeating the process again. It represents a continuous operation of data transfer between components.
   
 endclass
  
