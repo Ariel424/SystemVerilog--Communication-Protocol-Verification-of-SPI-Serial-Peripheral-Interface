@@ -214,6 +214,71 @@ stores the data in another mailbox, waits for a condition to be true, displays a
 and triggers an event before repeating the process again. It represents a continuous operation of data transfer between components.
   
 endclass
+
+//// Testbench until now 
+ 
+/*
+module tb; // tb = testbranch 
+  generator gen; // I make gen variable that takes the data from generator class. 
+  driver drv; // I make drv variable that takes the data from generator class. 
+  event next; // only after when a certain condition is met, the program will resume. 
+  event done; // only after some task is done, we can proceeding further in the program.
+  mailbox #(transaction) mbx; // By using the # symbol, you can create reusable modules or classes that can be customized with different data types or configurations. 
+  In the case of the mailbox module, it allows you to create multiple instances of the mailbox with different data types.
+  For example, you can instantiate another mailbox with a different data type by using mailbox #(bit [7:0]) mbx2;.
+  mailbox #(bit [11:0]) mbxt;
+  
+  spi_if vif(); // create non-virtual interface.
+  
+  spi dut(vif.clk,vif.newd,vif.rst,vif.din,vif.sclk,vif.cs,vif.mosi);
+  
+  
+  
+    initial begin
+      vif.clk <= 0;
+    end
+    
+    always #10 vif.clk <= ~vif.clk;
+  
+  
+ 
+  initial begin
+    mbx = new();
+    mbxt = new();
+    gen = new(mbx);
+    drv = new(mbxt,mbx);
+    gen.count  = 20;
+    drv.vif = vif;
+    
+    gen.drvnext = next;
+    
+    drv.drvnext = next;
+  end
+  
+  initial begin
+    
+    fork 
+      gen.run(); 
+      drv.main();
+    join_none
+    wait(gen.done.triggered);
+    $finish();
+  end
+  
+  initial begin
+  $dumpfile("dump.vcd");
+  $dumpvars;
+  end
+  
+ 
+endmodule
+ 
+*/
+ 
+
+
+
+
  
  
 
