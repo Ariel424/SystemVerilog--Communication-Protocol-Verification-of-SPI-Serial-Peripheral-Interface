@@ -155,7 +155,57 @@ class generator;
     -> done;
   endtask
   
-  
 endclass
 
+/////////// Driver Class
+ 
+class driver;
+  
+  virtual spi_if vif; // connect the interface to DUT (device under test).
+  transaction tr; // carries the data to sent to the DUT. represents only one single transaction object.
+  mailbox #(transaction) mbx; // exchage transaction objects between different processes or threads. this operator help the safety passing 
+  and exchanging transaction objects between different processes or threads within the "driver" class.
+  mailbox #(bit [11:0]) mbxds; // another mailbox declare to hold 12-bit data value.
+  event drvnext;  // used to synchronize he driver process with other processes or threads within the driver class. 
+  
+  bit [11:0] din;
+ 
+  function new(mailbox #(bit [11:0]) mbxds, mailbox #(transaction) mbx); // make function to make the program easiar.
+  automatically called when you create an object of the driver class.
+    this.mbx = mbx;
+    this.mbxds = mbxds;
+    endfunction
+  
+  task reset(); // reset the take. useful to unitialize or reinitialize the state of task before excution.\\
+     vif.rst <= 1'b1; // reset is on. 
+     vif.cs <= 1'b1; // The slave dont get data from the master (he isn't selected).
+     vif.newd <= 1'b0; // no new data is being presented to the interface.
+     vif.din <= 1'b0; // no specific data is being transmitted.
+     vif.mosi <= 1'b0; // no data from the master is being sent to the slave. 
+    repeat(10) @(posedge vif.clk); // I want to repeat ten times on the reset because I want to verify uncover 
+    potential issues or verify the correnctness of certain operations.
+    vif.rst <= 1'b0; // take out the system from reset mode and get into operational mode. 
+    repeat(5) @(posedge vif.clk); // I want to repeat five times to make stability for the system and dealy before the message of the RESET operate. 
+    $display("[DRV] : RESET DONE"); // message that show that the reset is done.
+  endtask
+  
+  task run();
+    forever begin
+      mbx.get(tr);
+      @(posedge vif.sclk);
+      vif.newd <= 1'b1;
+      vif.din <= tr.din;
+      mbxds.put(tr.din);
+      @(posedge vif.sclk);
+      vif.newd <= 1'b0;
+      wait(vif.cs == 1'b1);
+      $display("[DRV] : DATA SENT TO DAC : %0d",tr.din);
+      ->drvnext;
+    end
+    
+  endtask
+  
+endclass
+ 
+ 
 
