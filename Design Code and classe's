@@ -190,11 +190,11 @@ class driver;
   endtask
   
   task run();
-    forever begin
-      mbx.get(tr);
+    forever begin // make infinite loop until the simulation is stopped.
+      mbx.get(tr); // call the data in the transaction class.
       @(posedge vif.sclk);
-      vif.newd <= 1'b1;
-      vif.din <= tr.din;
+      vif.newd <= 1'b1; // put a new data.
+      vif.din <= tr.din; // 
       mbxds.put(tr.din);
       @(posedge vif.sclk);
       vif.newd <= 1'b0;
