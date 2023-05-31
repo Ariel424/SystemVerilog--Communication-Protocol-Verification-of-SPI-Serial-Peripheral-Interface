@@ -270,13 +270,49 @@ module tb; // tb = testbranch
   $dumpvars;
   end
   
- 
 endmodule
  
 */
+
+//// Monitor Class
  
-
-
+class monitor;
+transaction tr; // need to extract the data from transaction class.
+  mailbox #(bit [11:0]) mbx; // # is symbol that allow to specify the size or wide of the datatype used in the mailbox object.
+  if I dont include #, i'll get error.
+  bit [11:0] srx; // "srx" is being used to store the received data during monitoring process. in this class, the usage of this data register is to capture the received data bit by bit.
+  
+  virtual spi_if vif;
+  
+  function new(mailbox #(bit [11:0]) mbx);
+    this.mbx = mbx;
+    endfunction
+  
+  task run();
+    
+    forever begin
+      @(posedge vif.sclk);
+      wait(vif.cs == 1'b0); ///start of transaction
+      @(posedge vif.sclk);
+      
+      for(int i= 0; i<= 11; i++) begin 
+        @(posedge vif.sclk);
+        srx[i] = vif.mosi;         
+      end
+      
+      wait(vif.cs == 1'b1);  ///end of transaction
+      
+      $display("[MON] : DATA SENT : %0d", srx);
+      mbx.put(srx);
+     end  
+    
+endtask
+  
+ 
+endclass
+ 
+////////////////////////////////////////////////////////
+ 
 
 
  
