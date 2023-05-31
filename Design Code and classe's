@@ -230,38 +230,38 @@ module tb; // tb = testbranch
   
   spi_if vif(); // create non-virtual interface.
   
-  spi dut(vif.clk,vif.newd,vif.rst,vif.din,vif.sclk,vif.cs,vif.mosi);
+  spi dut(vif.clk,vif.newd,vif.rst,vif.din,vif.sclk,vif.cs,vif.mosi); // SPI is the name of the test. DUR is the device under the test. 
+  this line of code contain the signals being connected to the inputs and outputs of the SPI module.
+  if this line of code didn't written down, i'll be unable to establishes the communication and interaction between the SPI module and the rest of the design or testbench.
   
-  
-  
-    initial begin
-      vif.clk <= 0;
+   initial begin
+   vif.clk <= 0;
     end
     
-    always #10 vif.clk <= ~vif.clk;
-  
-  
+   always #10 vif.clk <= ~vif.clk; // #10 - the order will execute every 10 times units.
+   every 10 times units, the vaule will toggled (inverted). 
  
   initial begin
     mbx = new();
     mbxt = new();
     gen = new(mbx);
     drv = new(mbxt,mbx);
-    gen.count  = 20;
+    gen.count  = 20; // the generator needs to perform 20 times. 
     drv.vif = vif;
     
-    gen.drvnext = next;
+    gen.drvnext = next; 
     
     drv.drvnext = next;
   end
   
   initial begin
     
-    fork 
-      gen.run(); 
-      drv.main();
+    fork // with fork, I can allows for concurrent and parallel execution of tasks.
+    in this case, I want to run generator class and driver class in parallel, independently of each other.
+      gen.run(); // "run()" can be replace by with another variable name - "run" is in the meaning to initiate the generation test stimuli.
+      drv.main(); // "main" is the meaning to perform the driving of input signals. 
     join_none
-    wait(gen.done.triggered);
+    wait(gen.done.triggered); // This line of code written down for the generator to completed its intended task and not finish prematurely.
     $finish();
   end
   
