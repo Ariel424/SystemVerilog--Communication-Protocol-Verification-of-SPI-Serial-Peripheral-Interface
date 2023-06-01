@@ -284,9 +284,9 @@ transaction tr; // need to extract the data from transaction class.
   
   virtual spi_if vif;
   
-  function new(mailbox #(bit [11:0]) mbx);
-    this.mbx = mbx;
-    endfunction
+  function new(mailbox #(bit [11:0]) mbx); // making function for organize the object creation process.
+  this.mbx = mbx;
+  endfunction
   
   task run();
     
@@ -295,9 +295,9 @@ transaction tr; // need to extract the data from transaction class.
       wait(vif.cs == 1'b0); ///start of transaction
       @(posedge vif.sclk);
       
-      for(int i= 0; i<= 11; i++) begin 
-        @(posedge vif.sclk);
-        srx[i] = vif.mosi;         
+      for(int i=0; i<= 11; i++) begin 
+        @(posedge vif.sclk); // the loop waits for positive edge before capturing each bit to ensure synchroniztion with the clock signal.
+        srx[i] = vif.mosi; // store the data we receive bit by bit.         
       end
       
       wait(vif.cs == 1'b1);  ///end of transaction
@@ -308,7 +308,6 @@ transaction tr; // need to extract the data from transaction class.
     
 endtask
   
- 
 endclass
  
 ////////////////////////////////////////////////////////
