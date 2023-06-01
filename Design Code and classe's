@@ -310,9 +310,135 @@ endtask
   
 endclass
  
-////////////////////////////////////////////////////////
- 
+//// Testbench until now 
 
+
+/*
+module tb;
+  generator gen;
+  driver drv;
+  monitor mon;
+  
+  event next; // without these events, I can't allow communication between different modules of threads.
+  event done;
+  event sconext;
+  
+  mailbox #(transaction) mbx;
+  mailbox #(bit [11:0]) mbxds, mbxms; // needs two mailbox because I have more classe's in this TestBench.
+  
+  spi_if vif();
+  
+  spi dut(vif.clk,vif.newd,vif.rst,vif.din,vif.sclk,vif.cs,vif.mosi);
+  
+    initial begin
+      vif.clk <= 0;
+    end
+    
+    always #10 vif.clk <= ~vif.clk;
+  
+  initial begin
+    mbx = new();
+    mbxds = new();
+    mbxms = new();
+    gen = new(mbx);
+    drv = new(mbxds,mbx);
+    mon = new(mbxms);
+    
+    gen.count  = 20;
+    drv.vif = vif;
+    mon.vif = vif;
+    
+    gen.drvnext = next;
+    
+    drv.drvnext = next;
+    
+    gen.sconext = sconext;
+    mon.sconext = sconext;
+  end
+  
+  initial begin
+    
+    fork 
+      drv.reset();
+      gen.run(); 
+      drv.run();
+      mon.run();
+    join_none
+    wait(gen.done.triggered);
+    $finish();
+  end
+  
+  initial begin
+  $dumpfile("dump.vcd");
+  $dumpvars;
+  end
+  
+  
+endmodule
+*/
+ 
+//// Scoreboard Class
+ 
+class scoreboard;
+  mailbox #(bit [11:0]) mbxds, mbxms;
+  bit [11:0] ds;
+  bit [11:0] ms;
+  event sconext;
+  
+  function new(mailbox #(bit [11:0]) mbxds, mailbox #(bit [11:0]) mbxms);
+    this.mbxds = mbxds;
+    this.mbxms = mbxms;
+  endfunction
+  
+  task run();
+    forever begin
+      
+      mbxds.get(ds);
+      mbxms.get(ms);
+      $display("[SCO] : DRV : %0d MON : %0d", ds, ms);
+      if(ds == ms)
+        $display("[SCO] : DATA MATCHED");
+      else
+        $display("[SCO] : DATA MISMATCHED");
+      ->sconext;     
+    end
+  endtask
+  
+  
+endclass
+ 
+///
+ 
+ class scoreboard;
+  mailbox #(bit [11:0]) mbxds, mbxms; // mailboxes are apecialized constructs for inter-process comuunication and synchronization between other classes.
+  bit [11:0] ds; // used for local data storage within a single process or module from the mailbox and made test on this single data.
+  bit [11:0] ms;
+  event sconext;
+  
+  function new(mailbox #(bit [11:0]) mbxds, mailbox #(bit [11:0]) mbxms); // the function takes the two mailbox objects as input by making the data variables. 
+    this.mbxds = mbxds; // make the data variables. 
+    this.mbxms = mbxms; // The usage of this is necessary in this context because both the constructor arguments (mbxds and mbxms) and the class member variables 
+    (mbxds and mbxms) have the same names. Using this helps distinguish between the local function variables and the class member variables, 
+    ensuring that the assignments are made to the correct variables within the class instance.
+  endfunction
+  
+  task run();
+    forever begin
+      
+      mbxds.get(ds);
+      mbxms.get(ms);
+      $display("[SCO] : DRV : %0d MON : %0d", ds, ms);
+      if(ds == ms)
+        $display("[SCO] : DATA MATCHED");
+      else
+        $display("[SCO] : DATA MISMATCHED");
+      ->sconext;     
+    end
+  endtask
+  
+  
+endclass
+ 
 
  
  
