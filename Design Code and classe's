@@ -425,14 +425,14 @@ endclass
   task run();
     forever begin
       
-      mbxds.get(ds);
+      mbxds.get(ds); // retrieve the values from the mailboxes "mbxds" and "mbxms".
       mbxms.get(ms);
       $display("[SCO] : DRV : %0d MON : %0d", ds, ms);
       if(ds == ms)
         $display("[SCO] : DATA MATCHED");
       else
         $display("[SCO] : DATA MISMATCHED");
-      ->sconext;     
+      ->sconext; // triggers the sconext event - used for synchronization and comuunication purposes (after the data match).    
     end
   endtask
   
