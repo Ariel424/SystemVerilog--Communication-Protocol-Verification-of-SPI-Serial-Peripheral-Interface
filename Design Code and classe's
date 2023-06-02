@@ -436,8 +436,80 @@ endclass
     end
   endtask
   
-  
 endclass
+
+////////////////Environment Class
+ 
+class environment; // this class serves as test environment for the classe's.
+ 
+    generator gen;
+    driver drv;
+    monitor mon;
+    scoreboard sco; 
+  
+    event nextgd; ///gen -> drv, synchronize generator class with driver class
+    event nextgs;  /// gen -> sco, synchronize generator class with driver scoreboard.
+  
+  mailbox #(transaction) mbxgd; ///gen - drv, communication between the generator and the drive - Different types of data can be passed through these 
+  mailboxes for analysis and synchronization. 
+  mailbox #(bit [11:0]) mbxds; /// drv - mon 
+  mailbox #(bit [11:0]) mbxms;  /// mon - sco
+  
+  virtual spi_if vif; // connect the interface of SPI with envirement class. 
+ 
+  function new(virtual spi_if vif);
+       
+    mbxgd = new(); // "new()" is being used to allocate memory for the mailbox and initializthe e it.
+    it returns a reference to the created mailbox, which assigned to the varibale "mbxgd". 
+    using this function ensure that a fresh mailbox is available for communication and that is prperly initialized before being used.
+    if I dont use new(), the test between classe's wont be dynamic and flexibility. 
+    mbxms = new();
+    mbxds = new();
+    gen = new(mbxgd);
+    drv = new(mbxds,mbxgd);
+ 
+    mon = new(mbxms);
+    sco = new(mbxds, mbxms);
+    
+    this.vif = vif;
+    drv.vif = this.vif;
+    mon.vif = this.vif;
+    
+    gen.sconext = nextgs;
+    sco.sconext = nextgs;
+    
+    gen.drvnext = nextgd;
+    drv.drvnext = nextgd;
+ 
+  endfunction
+  
+  task pre_test(); // initialize the test environment 
+    drv.reset(); // reset the driver class before testing. 
+  endtask
+  
+  task test(); // start making the test
+  fork
+    gen.run(); // start generator class 
+    drv.run();
+    mon.run();
+    sco.run();
+  join_any
+  endtask
+  
+  task post_test();
+    wait(gen.done.triggered);  
+    $finish();
+  endtask
+  
+  task run();
+    pre_test();
+    test();
+    post_test();
+  endtask
+
+endclass
+ 
+///////////////////////////////////////////
  
 
  
