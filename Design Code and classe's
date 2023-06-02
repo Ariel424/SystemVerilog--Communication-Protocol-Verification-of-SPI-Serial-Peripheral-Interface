@@ -496,15 +496,20 @@ class environment; // this class serves as test environment for the classe's.
   join_any
   endtask
   
-  task post_test();
-    wait(gen.done.triggered);  
-    $finish();
+  task post_test(); // this line of code cause that the simulation will not continue inderfinitely.
+  This can lead to unnecessary resource usage and make it difficult to analyze the simulation results or determine when the test has actually completed.
+  task allows you to properly finalize the simulation, clean up any remaining tasks or processes, and exit gracefully.
+  It ensures that the simulation terminates at the appropriate time and provides a clear indication of the end of the test phase. 
+    wait(gen.done.triggered); // pause execution until gen is trigger. 
+    $finish(); // call to end the simulation. 
   endtask
   
   task run();
-    pre_test();
-    test();
-    post_test();
+    pre_test(); // This task orchestrates the overall test flow by calling other tasks in a sequence.
+    The pre_test() task is called first to initialize the test environment, which may involve setting initial states or configurations.
+    test(); // The test() task is then called using the fork-join_any construct.
+    This launches concurrent execution of the gen.run(), drv.run(), mon.run(), and sco.run() tasks, allowing them to run simultaneously.
+    post_test(); // task is called to perform post-processing and terminate the simulation.
   endtask
 
 endclass
@@ -514,4 +519,5 @@ endclass
 
  
  
+
 
