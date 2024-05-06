@@ -77,11 +77,8 @@ synchronizing the data transfer between the SPI master and slave devices.
   
 endmodule
 
-interface spi_if; // interface provides a standardized way to define the signals and their characteristics for communication between modules.
-a module represents a self-contained unit of hardware with its own internal logic and behavior, 
-while an interface defines a set of signals and properties that facilitate communication between modules or entities.
-Modules contain both the interface (input/output ports) and the internal logic,
-whereas interfaces are focused on specifying the communication protocol and characteristics of the signals used for inter-module communication.
+// declare interface 
+interface spi_if; 
 
   logic clk;
   logic newd;
@@ -92,8 +89,6 @@ whereas interfaces are focused on specifying the communication protocol and char
   logic mosi;
   
 endinterface
-
-Testbench Code:
 
 // Transaction Class
 class transaction;
@@ -117,7 +112,7 @@ class transaction;
   
 endclass
 
-////////////////Generator Class
+// Generator Class
 class generator;
   
   transaction tr; // define tr variable for transaction.
@@ -153,20 +148,13 @@ class generator;
   
 endclass
 
-/////////// Driver Class
+// Driver Class
  
 class driver;
   
-  virtual spi_if vif; // virtual keyword is used to declare a virtual interface or class connect to DUT (device under test).
-  virtual spi_if vif declares a variable named vif of type spi_if, where spi_if is the interface type. By specifying spi_if after virtual,
-  you are explicitly indicating the type of the interface that vif will be bound to. If you were to write just virtual vif without specifying the interface type,
-  it would be a syntax error because the type of the interface is missing.
-  transaction tr; // carries the data to sent to the DUT. represents only one single transaction object.
-  mailbox #(transaction) mbx; // exchage transaction objects between different processes or threads. this operator help the safety passing 
-  and exchanging transaction objects between different processes or threads within the "driver" class.
-  mailbox #(bit [11:0]) mbxds; // another mailbox declare to hold 12-bit data value.
+  virtual spi_if vif; 
+  mailbox #(bit [11:0]) mbxds; 
   event drvnext;  // used to synchronize he driver process with other processes or threads within the driver class. 
-  
   bit [11:0] din;
  
   function new(mailbox #(bit [11:0]) mbxds, mailbox #(transaction) mbx); // make function to make the program easiar.
@@ -205,72 +193,12 @@ class driver;
     
   endtask
 
-// Overall, the run() task repeatedly retrieves a transaction object from the mailbox, transfers the data from the transaction to the interface,
 stores the data in another mailbox, waits for a condition to be true, displays a message, 
 and triggers an event before repeating the process again. It represents a continuous operation of data transfer between components.
   
 endclass
 
-//// Testbench until now 
- 
-/*
-module tb; // tb = testbranch 
-  generator gen; // I make gen variable that takes the data from generator class. 
-  driver drv; // I make drv variable that takes the data from generator class. 
-  event next; // only after when a certain condition is met, the program will resume. 
-  event done; // only after some task is done, we can proceeding further in the program.
-  mailbox #(transaction) mbx; // By using the # symbol, you can create reusable modules or classes that can be customized with different data types or configurations. 
-  In the case of the mailbox module, it allows you to create multiple instances of the mailbox with different data types.
-  For example, you can instantiate another mailbox with a different data type by using mailbox #(bit [7:0]) mbx2;.
-  mailbox #(bit [11:0]) mbxt;
-  
-  spi_if vif(); // create non-virtual interface.
-  
-  spi dut(vif.clk,vif.newd,vif.rst,vif.din,vif.sclk,vif.cs,vif.mosi); // SPI is the name of the test. DUR is the device under the test. 
-  this line of code contain the signals being connected to the inputs and outputs of the SPI module.
-  if this line of code didn't written down, i'll be unable to establishes the communication and interaction between the SPI module and the rest of the design or testbench.
-  
-   initial begin
-   vif.clk <= 0;
-    end
-    
-   always #10 vif.clk <= ~vif.clk; // #10 - the order will execute every 10 times units.
-   every 10 times units, the vaule will toggled (inverted). 
- 
-  initial begin
-    mbx = new();
-    mbxt = new();
-    gen = new(mbx);
-    drv = new(mbxt,mbx);
-    gen.count  = 20; // the generator needs to perform 20 times. 
-    drv.vif = vif;
-    
-    gen.drvnext = next; 
-    
-    drv.drvnext = next;
-  end
-  
-  initial begin
-    
-    fork // with fork, I can allows for concurrent and parallel execution of tasks.
-    in this case, I want to run generator class and driver class in parallel, independently of each other.
-      gen.run(); // "run()" can be replace by with another variable name - "run" is in the meaning to initiate the generation test stimuli.
-      drv.main(); // "main" is the meaning to perform the driving of input signals. 
-    join_none
-    wait(gen.done.triggered); // This line of code written down for the generator to completed its intended task and not finish prematurely.
-    $finish();
-  end
-  
-  initial begin
-  $dumpfile("dump.vcd");
-  $dumpvars;
-  end
-  
-endmodule
- 
-*/
-
-//// Monitor Class
+// Monitor Class
  
 class monitor;
 transaction tr; // need to extract the data from transaction class.
@@ -306,74 +234,7 @@ endtask
   
 endclass
  
-//// Testbench until now 
-
-
-/*
-module tb;
-  generator gen;
-  driver drv;
-  monitor mon;
-  
-  event next; // without these events, I can't allow communication between different modules of threads.
-  event done;
-  event sconext;
-  
-  mailbox #(transaction) mbx;
-  mailbox #(bit [11:0]) mbxds, mbxms; // needs two mailbox because I have more classe's in this TestBench.
-  
-  spi_if vif();
-  
-  spi dut(vif.clk,vif.newd,vif.rst,vif.din,vif.sclk,vif.cs,vif.mosi);
-  
-    initial begin
-      vif.clk <= 0;
-    end
-    
-    always #10 vif.clk <= ~vif.clk;
-  
-  initial begin
-    mbx = new();
-    mbxds = new();
-    mbxms = new();
-    gen = new(mbx);
-    drv = new(mbxds,mbx);
-    mon = new(mbxms);
-    
-    gen.count  = 20;
-    drv.vif = vif;
-    mon.vif = vif;
-    
-    gen.drvnext = next;
-    
-    drv.drvnext = next;
-    
-    gen.sconext = sconext;
-    mon.sconext = sconext;
-  end
-  
-  initial begin
-    
-    fork 
-      drv.reset();
-      gen.run(); 
-      drv.run();
-      mon.run();
-    join_none
-    wait(gen.done.triggered);
-    $finish();
-  end
-  
-  initial begin
-  $dumpfile("dump.vcd");
-  $dumpvars;
-  end
-  
-  
-endmodule
-*/
- 
-//// Scoreboard Class
+// Scoreboard Class
  
 class scoreboard;
   mailbox #(bit [11:0]) mbxds, mbxms;
@@ -399,44 +260,12 @@ class scoreboard;
       ->sconext;     
     end
   endtask
-  
-  
-endclass
- 
-///
- 
- class scoreboard;
-  mailbox #(bit [11:0]) mbxds, mbxms; // mailboxes are apecialized constructs for inter-process comuunication and synchronization between other classes.
-  bit [11:0] ds; // used for local data storage within a single process or module from the mailbox and made test on this single data.
-  bit [11:0] ms;
-  event sconext;
-  
-  function new(mailbox #(bit [11:0]) mbxds, mailbox #(bit [11:0]) mbxms); // the function takes the two mailbox objects as input by making the data variables. 
-    this.mbxds = mbxds; // make the data variables. 
-    this.mbxms = mbxms; // The usage of this is necessary in this context because both the constructor arguments (mbxds and mbxms) and the class member variables 
-    (mbxds and mbxms) have the same names. Using this helps distinguish between the local function variables and the class member variables, 
-    ensuring that the assignments are made to the correct variables within the class instance.
-  endfunction
-  
-  task run();
-    forever begin
-      
-      mbxds.get(ds); // retrieve the values from the mailboxes "mbxds" and "mbxms".
-      mbxms.get(ms);
-      $display("[SCO] : DRV : %0d MON : %0d", ds, ms);
-      if(ds == ms)
-        $display("[SCO] : DATA MATCHED");
-      else
-        $display("[SCO] : DATA MISMATCHED");
-      ->sconext; // triggers the sconext event - used for synchronization and comuunication purposes (after the data match).    
-    end
-  endtask
-  
+
 endclass
 
-////////////////Environment Class
+// Environment Class
  
-class environment; // this class serves as test environment for the classe's.
+class environment; 
  
     generator gen;
     driver drv;
@@ -510,7 +339,7 @@ class environment; // this class serves as test environment for the classe's.
 
 endclass
 
-//// Testbench Top
+// Testbench Top
 
 module tb;
     
@@ -537,9 +366,6 @@ module tb;
       $dumpvars;
     end  
   endmodule
- 
- ////
- 
  
  
 
