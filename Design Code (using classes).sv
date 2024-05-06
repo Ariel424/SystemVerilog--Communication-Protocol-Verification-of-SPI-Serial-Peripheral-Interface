@@ -1,5 +1,3 @@
-Design Code:
-
 module spi ( // define SPI 
 input clk, newd, rst, // newd = new data. The input can be "0" or "1" logi. 
 input [11:0] din, // 12-bit wide bus
@@ -79,8 +77,6 @@ synchronizing the data transfer between the SPI master and slave devices.
   
 endmodule
 
-///////////////////////////
-
 interface spi_if; // interface provides a standardized way to define the signals and their characteristics for communication between modules.
 a module represents a self-contained unit of hardware with its own internal logic and behavior, 
 while an interface defines a set of signals and properties that facilitate communication between modules or entities.
@@ -99,7 +95,7 @@ endinterface
 
 Testbench Code:
 
-////////////////Transaction Class
+// Transaction Class
 class transaction;
   
   rand bit newd;
