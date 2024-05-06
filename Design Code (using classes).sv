@@ -8,11 +8,8 @@ synchronizing the data transfer between the SPI master and slave devices.
   typedef enum bit [1:0] {idle = 2'b00, enable = 2'b01, send = 2'b10, comp = 2'b11 } state_type; // current state of SPI module.
   state_type state = idle;
   
-  int countc = 0; // declared to keep track of internal counts used for clock generation. This variable is used to keep track of the count for generating the sclk signal. 
-  It is incremented on every clock cycle (posedge clk) until it reaches a certain value. 
- 
-  //// generation of sclk // clk is the main input clock signal to the module, 
- while sclk is an output signal generated within the module for serial clock synchronization purposes in SPI communication.
+  int countc = 0; 
+
  always@(posedge clk) // Change of status every positive clock. 
   begin
     if(rst == 1'b1) begin
